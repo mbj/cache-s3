@@ -16,8 +16,10 @@ module Network.AWS.S3.Cache.Local where
 
 import           Control.Exception.Safe       (MonadCatch)
 import           Control.Monad                (void)
+import           Control.Monad.Catch          (MonadThrow)
 import           Control.Monad.IO.Class       (liftIO)
 import           Control.Monad.Logger
+import           Control.Monad.Primitive      (PrimMonad)
 import           Control.Monad.Trans.Resource (MonadResource, ResourceT)
 import           Crypto.Hash                  (Digest, HashAlgorithm)
 import           Crypto.Hash.Conduit
@@ -76,7 +78,7 @@ removeSubpaths dirsCanonical =
     isPathPrefixOf (x:xs) (y:ys) = equalFilePath x y && isPathPrefixOf xs ys
 
 prepareCache ::
-     (HashAlgorithm h, MonadResource m)
+     (HashAlgorithm h, MonadResource m, MonadThrow m, PrimMonad m)
   => Compression -> ConduitM ByteString Void m (Handle, Word64, Digest h, Compression)
 prepareCache compression = do
   (_, _, tmpHandle) <- openTempFile Nothing "cache-s3.tar"
@@ -94,7 +96,7 @@ prepareCache compression = do
 -- prior to the compression, in order to avoid any possible nondeterminism with future compression
 -- algorithms. Returns the computed hash and the file handle where tarball can be read from.
 getCacheHandle ::
-     (HashAlgorithm h, MonadCatch m, MonadResource m, MonadLogger m)
+     (HashAlgorithm h, MonadCatch m, MonadResource m, MonadLogger m, PrimMonad m)
   => [FilePath]
   -> h
   -> Compression

@@ -19,7 +19,9 @@ module Network.AWS.S3.Cache.Types where
 
 import           Control.Applicative
 import           Control.Lens
+import           Control.Monad.Catch              (MonadThrow)
 import           Control.Monad.Logger             as L
+import           Control.Monad.Primitive          (PrimMonad)
 import           Control.Monad.Trans.Resource     (MonadResource)
 import           Crypto.Hash
 import           Data.Attoparsec.ByteString.Char8
@@ -353,7 +355,7 @@ data Compression
   deriving (Show, Eq, Enum)
 
 
-getCompressionConduit :: MonadResource m =>
+getCompressionConduit :: (MonadResource m, MonadThrow m, PrimMonad m) =>
                          Compression -> Conduit ByteString m ByteString
 getCompressionConduit GZip = gzip
 #if !WINDOWS
@@ -361,7 +363,7 @@ getCompressionConduit LZ4  = LZ4.compress Nothing
 #endif
 
 
-getDeCompressionConduit :: MonadResource m =>
+getDeCompressionConduit :: (MonadResource m, MonadThrow m, PrimMonad m) =>
                            Compression -> Conduit ByteString m ByteString
 getDeCompressionConduit GZip = ungzip
 #if !WINDOWS
