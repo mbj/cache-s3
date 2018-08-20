@@ -1,7 +1,9 @@
 {-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE TypeFamilies          #-}
 -- |
 -- Module      : Network.AWS.S3.Cache
 -- Copyright   : (c) FP Complete 2017
@@ -20,7 +22,9 @@ module Network.AWS.S3.Cache
 import           Control.Exception.Safe       (MonadCatch)
 import           Control.Lens
 import           Control.Monad                (when)
+import           Control.Monad.IO.Unlift      (MonadUnliftIO)
 import           Control.Monad.Logger         as L
+import           Control.Monad.Primitive      (PrimMonad(PrimState, primitive))
 import           Control.Monad.Reader
 import           Control.Monad.Trans.AWS
 import           Control.Monad.Trans.Control  (MonadBaseControl)
@@ -40,6 +44,9 @@ import           Prelude                      as P
 import           System.Exit
 import           System.Log.FastLogger        (fromLogStr)
 
+instance PrimMonad m => PrimMonad (LoggingT m) where
+  type PrimState (LoggingT m) = PrimState m
+  primitive = lift . primitive
 
 showLogLevel :: L.LogLevel -> LogStr
 showLogLevel level =
@@ -72,7 +79,7 @@ customLoggerT con minLevel (LoggingT f) = do
 
 -- | Run the cache action.
 run ::
-     (MonadBaseControl IO m, MonadIO m)
+     (MonadBaseControl IO m, MonadIO m, MonadUnliftIO m)
   => ReaderT Config (LoggingT (ResourceT m)) a
   -> Config
   -> m a

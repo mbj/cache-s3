@@ -37,6 +37,7 @@ library
                      , cryptonite
                      , cryptonite-conduit
                      , directory >= 1.3.0.0
+                     , exceptions
                      , safe-exceptions
                      , fast-logger >= 2.1.0
                      , filepath
@@ -47,6 +48,7 @@ library
                      , monad-control
                      , monad-logger
                      , mtl
+                     , primitive
                      , process
                      , resourcet
                      , tar-conduit >= 0.2.0
@@ -54,6 +56,7 @@ library
                      , text
                      , time
                      , transformers >= 0.5.2.0
+                     , unliftio-core
                      , unordered-containers
                      , vector >= 0.12.0.0
                      , yaml

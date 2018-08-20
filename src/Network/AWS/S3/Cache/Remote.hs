@@ -18,6 +18,7 @@ module Network.AWS.S3.Cache.Remote where
 import           Control.Applicative
 import           Control.Exception.Safe
 import           Control.Lens
+import           Control.Monad.Catch                  (MonadThrow)
 import           Control.Monad.Logger                 as L
 import           Control.Monad.Reader
 import           Control.Monad.Trans.Maybe
@@ -58,6 +59,7 @@ import           System.IO                            (hClose)
 hasCacheChanged ::
      ( MonadReader r m
      , MonadResource m
+     , MonadThrow m
      , MonadLogger m
      , HasBucketName r BucketName
      , HasObjectKey r ObjectKey
@@ -119,6 +121,7 @@ decodeHash hashTxt =
 
 uploadCache ::
      ( MonadReader r m
+     , MonadThrow m
      , HasEnv r
      , HasMinLogLevel r L.LogLevel
      , HasObjectKey r ObjectKey
@@ -189,6 +192,7 @@ deleteCache ::
      ( MonadResource m
      , MonadLoggerIO m
      , MonadReader c m
+     , MonadThrow m
      , HasEnv c
      , HasMinLogLevel c L.LogLevel
      , HasObjectKey c ObjectKey
@@ -206,6 +210,7 @@ downloadCache ::
      ( MonadResource m
      , MonadLoggerIO m
      , MonadReader c m
+     , MonadThrow m
      , HasEnv c
      , HasMinLogLevel c L.LogLevel
      , HasObjectKey c ObjectKey
@@ -285,7 +290,7 @@ downloadCache sink = do
       hashComputed <-
         liftIO $
         runResourceT $
-        resp ^. gorsBody ^. to _streamBody $$+-
+        (sealConduitT (_streamBody (resp ^. gorsBody))) $$+-
         (getProgressReporter reporter (fromInteger len) .| sink compAlg hashAlg)
       if (hashComputed == hashExpected)
         then do
@@ -306,6 +311,7 @@ downloadCache sink = do
 sendAWS ::
      ( MonadReader r m
      , MonadResource m
+     , MonadThrow m
      , HasEnv r
      , HasMinLogLevel r L.LogLevel
      , HasObjectKey r ObjectKey
@@ -324,6 +330,7 @@ sendAWS req = runLoggingAWS (send req)
 sendAWS_ ::
      ( MonadReader r m
      , MonadResource m
+     , MonadThrow m
      , HasEnv r
      , HasMinLogLevel r L.LogLevel
      , HasObjectKey r ObjectKey
@@ -340,6 +347,7 @@ sendAWS_ req = runLoggingAWS (send req) (const $ return (Just LevelError, ()))
 runLoggingAWS_ ::
      ( MonadReader r m
      , MonadResource m
+     , MonadThrow m
      , HasEnv r
      , HasMinLogLevel r L.LogLevel
      , HasObjectKey r ObjectKey
@@ -354,6 +362,7 @@ runLoggingAWS_ action = runLoggingAWS action (const $ pure (Just LevelError, ())
 runLoggingAWS ::
      ( MonadReader r m
      , MonadResource m
+     , MonadThrow m
      , HasEnv r
      , HasMinLogLevel r L.LogLevel
      , HasObjectKey r ObjectKey
