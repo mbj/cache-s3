@@ -1,19 +1,13 @@
-resolver: lts-12.7
+resolver: lts-13.14
 packages:
 - .
 extra-deps:
 - lz4-conduit-0.3
-- patience-0.1.1
+- patience-0.2.1.1
 - temporary-resourcet-0.1.0.1
-- git: https://github.com/hamishmack/hs-git
-  commit: c829ec133f603e376177deaa57a333ef84308af3
+- git-0.3.0
 - git: https://github.com/e-bigmoon/amazonka-s3-streaming
   commit: 25b4ae8fa0321819c5ac9d6f7a95d6b5b07a77f1
-- git: https://github.com/brendanhay/amazonka
-  commit: 248f7b2a7248222cc21cef6194cd1872ba99ac5d
-  subdirs:
-  - amazonka
-  - amazonka-s3
 flags:
   amazonka-s3-streaming:
     conduit_1_3: true
