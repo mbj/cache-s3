@@ -32,7 +32,7 @@ library
                      , amazonka
                      , amazonka-core
                      , amazonka-s3
-                     , amazonka-s3-streaming
+                     , amazonka-s3-streaming >= 1.0.0.2 && < 1.1.0.0
                      , attoparsec
                      , base >= 4.7 && < 5
                      , base64-bytestring
